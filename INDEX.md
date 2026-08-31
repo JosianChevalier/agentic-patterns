@@ -36,7 +36,11 @@ Map reads exactly one source, emits a distilled fragment; reduce greps fragments
 Anti-hallucination split. **Sourceability** — every claim ends with a citation token that must resolve — is a lint (`check.py`), wired into `done`. **Fidelity** — does the claim say what the source says — is an agent reading the span, resolving citations **back to ground truth** (not the intermediate fragment): one end-of-chain check covers distortion at both hops. Default posture: refute if in doubt.
 → `reference/consolidation-pipeline/check.py`, `docs/philosophy/gate-fidelite.md`
 
-### 1.8 Manual facts flow through the same machinery
+### 1.8 Purge the output at claim — code guard against anchoring
+When an agent claims a rebuild (reduce), the script `unlink()`s the previous version of the output file before handing over. This mechanically forces a fresh `Write`: an `Edit` would require a `Read`, anchoring the agent on the old text instead of re-deriving from the fragments. The purge happens under the lock but is **not committed** (crash → HEAD intact); `reopen` doesn't purge (the corpus stays greppable while the task waits). Purest instance of "a code guard against an agent's cognitive bias".
+→ `reference/consolidation-pipeline/task.py`
+
+### 1.9 Manual facts flow through the same machinery
 Hand-arbitrated facts live as mini-ADRs (one fact per file, monotonic id = immutable citation key, body *is* the fact) and are **projected** into the pipeline as a synthetic fragment — so human input and extracted input converge through identical validation. Includes the `candidat` (human judged) vs `settled` (authority confirmed) distinction and an outgoing-questions queue that empties when the *outside world* answers.
 → `reference/consolidation-pipeline/project_arbitrages.py`
 
