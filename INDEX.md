@@ -18,11 +18,11 @@ Task state = one CSV row per task, mutated in place. Bounded by construction (do
 
 ### 1.3 The script picks the task, not the agent
 `claim_next` selects the next eligible task under the lock and prints exactly the start context the agent needs (`input:`, `note:`, `session:`). Structurally eliminates selection races and failed claims, and keeps the agent from ever loading the full registry.
-→ `reference/consolidation-pipeline/task.py`; simple markdown-board instance: `reference/report-task.py`
+→ `reference/consolidation-pipeline/task.py`; simple markdown-board instance: `reference/report-task.py`; liftable generic template (`# ADAPT:` zones, step-by-step duplication guide, known variants): `reference/templates/file-validation/`
 
 ### 1.4 Validation by N/N convergence of distinct agents
 An artifact converges when N *consecutive* passes by N *distinct* agents say `ok`. Guards enforced by script, not by instruction: validator ≠ author, no two passes by the same agent, validation only after production. Agent identity = 8-char session short, stamped in every commit subject in a fixed format — the format is a machine contract (scripts grep history to enforce guards and attribute work).
-→ `reference/consolidation-pipeline/task.py`, `docs/specs/validate.md`
+→ `reference/consolidation-pipeline/task.py`, `docs/specs/validate.md`; generic template (state machine, verdicts `ok`/`corrected`/`flagged`, script-enforced guards): `reference/templates/file-validation/`, black-box suite `reference/tests/test_template_file_validation.py`
 
 ### 1.5 Correction lease — fix in place, never nuclear reject
 A rejected artifact isn't thrown back to `todo`. A validator edits it in place (`corrige`); all sibling validation passes reset to 0/N (the content is no longer what they read). The edit spans multiple CLI calls, outside the lock → concurrent correctors serialized by a **durable lease** in the row's note (`correcting:<short>`). Orphaned corrector: clear lease + `git checkout` the artifact back.
@@ -50,7 +50,7 @@ Hand-arbitrated facts live as mini-ADRs (one fact per file, monotonic id = immut
 
 ### 2.1 Slots vs budget — two orthogonal caps
 `--slots` = concurrency width (CPU, commit serialization, rate limits); `--max-agents` = cumulative budget (guard against a queue that never empties). On each freed slot, **re-peek state** rather than planning the queue once — state moved. Pin `--model` on every `claude -p` (otherwise cost inherits the launcher's UI default). Stall detection = state-fingerprint diff at harvest (N consecutive no-change harvests → drain), not per-stream counters (false-positive on legitimately repeating gates).
-→ `reference/consolidation-pipeline/orchestrate.py`, `docs/specs/orchestrateur.md`, `docs/philosophy/orchestrateur.md`
+→ `reference/consolidation-pipeline/orchestrate.py`, `docs/specs/orchestrateur.md`, `docs/philosophy/orchestrateur.md`; generic template plugging onto `templates/file-validation/`: `reference/templates/subagent-orchestrator/`
 
 ### 2.2 Banner-as-monitor — long background scripts under an agent
 The problem: an agent that backgrounds a long script isn't woken when it ends, so it falls back to foreground waits and goes blind/blocked. The package:
@@ -64,7 +64,7 @@ Per-agent progress counting = grep the agent's short in commit subjects, never a
 
 ### 2.3 Three-layer watchdog + semantic audit
 A time cap doesn't catch a rabbit-hole: an off-task agent produces output continuously. Layers: (1) sliding inactivity on JSONL mtime → kill; (2) **semantic audit** — a cheap model reads a *digest* of the agent's own event log and returns a verdict, continue-by-default on any error; (3) absolute cap as final net. Post-kill orphan recovery = admin force-release indexed on the real owner field.
-→ `reference/consolidation-pipeline/docs/specs/watchdog.md`; reference impl `reference/extraction-pipeline/orchestrate.py`
+→ `reference/consolidation-pipeline/docs/specs/watchdog.md`; reference impl `reference/extraction-pipeline/orchestrate.py`; genericized (6 `# ADAPT:` zones, whole-process-group SIGKILL, orphan-claim auto-abandon): `reference/templates/subagent-orchestrator/`
 
 ### 2.4 Prompts as files, single source of truth
 An instruction addressed to agents is written once, in a dedicated `.md`; the orchestrator `cat`s `common.md` + the role file. Dividing line: **prompt file = what you tell an agent; spec = what the system enforces.** Specs reference prompt files by path, never copy them. (Origin: a 130-line Python string literal drifting from the `.md` it told agents to read.)
@@ -77,6 +77,10 @@ Liftable boilerplate for any `claude -p` worker: one task then exit, never a sec
 ### 2.6 Small-context doctrine
 Quality degrades well before the window limit (~100k loaded = unstable; ~60k working ideal). Consequences: disposable sessions (1 task/session), orchestrator manages volume — "not your endurance"; claim output carries the whole start context; per-claim **quotas** ("do your batch, release and exit even if the cell isn't done").
 → `reference/consolidation-pipeline/docs/philosophy/map-reduce.md`, `prompts/common.md`, quotas: `reference/extraction-pipeline/RESSOURCES_PROTOCOL.md`
+
+### 2.7 Heartbeat env var — long silent subprocesses under a sliding watchdog
+The sliding watchdog reads liveness from the agent's JSONL log mtime — but a domain script doing one long burst (heavy binary extraction, media conversion) behind the Bash tool has its stdout buffered until completion: the log freezes and the watchdog kills a healthy agent mid-task. Contract: the orchestrator exports `ORCHESTRATE_HEARTBEAT=<per-agent tmp path>` into the subagent's env and its inactivity check watches log mtime **or** heartbeat mtime; the domain script touches that path every ~30s (well under the inactivity window) from a daemon thread started just before the long work. Hard rules on the script side: no-op when the var is absent (stays usable standalone/in tests), touch wrapped in try/except so a heartbeat bug never fails the real task, thread dies with the process.
+→ `reference/templates/subagent-orchestrator/README.md` (copyable Python + shell snippets), `orchestrate.py`
 
 ---
 
@@ -148,6 +152,7 @@ The human's cognitive load is the project's scarce resource; **the methodology a
 | `reference/extraction-pipeline/` | `1-sources/outils/ressources/` | Multi-step board pipeline: per-cell claim/release, quotas, watchdog reference impl, protocol doc |
 | `reference/report-task.py` | `1-sources/outils/` | Minimal claim/finish/release instance (markdown board) |
 | `reference/harness/` | `.claude/`, `common/outils/` | settings.json, permissions playbook, commit rules, agent defs, skills, whoami |
-| `reference/tests/` | `common/outils/tests/` | Test discipline README + concurrency exemplar |
+| `reference/templates/` | `common/outils/templates/` | Liftable generic templates: `file-validation/` (claim + N/N-validation CLI + example board) and `subagent-orchestrator/` (`claude -p` pool, 3-layer watchdog, heartbeat), with `# ADAPT:` zones and duplication guides |
+| `reference/tests/` | `common/outils/tests/` | Test discipline README + concurrency exemplar + template black-box suite |
 
 Left behind on purpose: domain content (sources, notes, deliverables), extraction handlers (format-specific), domain state files (`tasks.csv`, boards).
