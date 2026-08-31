@@ -9,7 +9,7 @@ Two families: **harness** (running agents on code/tasks) and **KB** (agent-maint
 ## 1. Pipeline core (state & lifecycle)
 
 ### 1.1 Scripts own state, agents own cognition
-The foundational rule. Deterministic guarantees (who holds what, atomic transitions, serialization, commit formats) belong to a CLI under `flock`; judgment (distilling, cutting, validating meaning) belongs to agents. An agent never hand-edits state: it calls a verb (`claim_next`, `done`, `release`…), does its cognitive work, writes *its* artifact; the CLI verifies and commits. Single mutation authority: one script, one lock.
+The foundational rule. Deterministic guarantees (who holds what, atomic transitions, serialization, commit formats) belong to a CLI under `flock`; judgment (distilling, cutting, validating meaning) belongs to agents. An agent never hand-edits state: it calls a verb (`claim_next`, `done`, `release`…), does its cognitive work, writes *its* artifact; the CLI verifies and commits. Single mutation authority: one script, one lock. Contract of the critical section: read/write state **and commit** before releasing the lock — the transition is visible to others the moment the lock drops, and commit order = real transition order (git log becomes trustworthy as a journal, which 2.8 builds on).
 → `reference/consolidation-pipeline/docs/philosophy/map-reduce.md`, `docs/specs/modele-donnees.md`
 
 ### 1.2 Tabular registry, not a ledger
@@ -17,7 +17,7 @@ Task state = one CSV row per task, mutated in place. Bounded by construction (do
 → `reference/consolidation-pipeline/_store.py`, `task.py`, `docs/specs/modele-donnees.md`
 
 ### 1.3 The script picks the task, not the agent
-`claim_next` selects the next eligible task under the lock and prints exactly the start context the agent needs (`input:`, `note:`, `session:`). Structurally eliminates selection races and failed claims, and keeps the agent from ever loading the full registry.
+`claim_next` selects the next eligible task under the lock and prints exactly the start context the agent needs (`input:`, `note:`, `session:`). Structurally eliminates selection races and failed claims, and keeps the agent from ever loading the full registry. Second selection pattern, for boards with per-cell claims and no `claim_next` verb: the prompt orders "list ALL takeable cells, **draw one at random**, max 3 attempts then exit" — N agents all aiming at the first free cell would collide systematically; randomness is the cheapest anti-collision.
 → `reference/consolidation-pipeline/task.py`; simple markdown-board instance: `reference/report-task.py`; liftable generic template (`# ADAPT:` zones, step-by-step duplication guide, known variants): `reference/templates/file-validation/`
 
 ### 1.4 Validation by N/N convergence of distinct agents
@@ -35,6 +35,10 @@ Map reads exactly one source, emits a distilled fragment; reduce greps fragments
 ### 1.7 Two gates of different natures: sourcing (deterministic) vs fidelity (cognitive)
 Anti-hallucination split. **Sourceability** — every claim ends with a citation token that must resolve — is a lint (`check.py`), wired into `done`. **Fidelity** — does the claim say what the source says — is an agent reading the span, resolving citations **back to ground truth** (not the intermediate fragment): one end-of-chain check covers distortion at both hops. Default posture: refute if in doubt.
 → `reference/consolidation-pipeline/check.py`, `docs/philosophy/gate-fidelite.md`
+
+### 1.7bis Append-only gate — pristine snapshot + insertion state machine
+Same family as 1.7 (deterministic gate), for enrichment chains: downstream steps annotating an extracted artifact must only **add**, never touch the source text. At extraction, write a hidden pristine snapshot (`.extract.md`) beside the living file; the gate diffs snapshot vs current via `SequenceMatcher` opcodes — any `delete`/`replace` fails outright, and each `insert` block runs through a small state machine that accepts only the declared insertion shapes (blank lines, single embed lines, open/close-tagged free-form blocks; an unclosed tag is a violation). Agents get full freedom *inside* the allowed shapes, structurally zero ability to erode the source. Missing snapshot → dedicated error carrying the bootstrap command.
+→ `reference/extraction-pipeline/check_text_preservation.py`, black-box suite `reference/tests/test_check_text_preservation.py`
 
 ### 1.8 Purge the output at claim — code guard against anchoring
 When an agent claims a rebuild (reduce), the script `unlink()`s the previous version of the output file before handing over. This mechanically forces a fresh `Write`: an `Edit` would require a `Read`, anchoring the agent on the old text instead of re-deriving from the fragments. The purge happens under the lock but is **not committed** (crash → HEAD intact); `reopen` doesn't purge (the corpus stays greppable while the task waits). Purest instance of "a code guard against an agent's cognitive bias".
@@ -100,11 +104,11 @@ Orphan recovery with zero persisted orchestrator state: diff the commit subjects
 ## 3. Harness & permissions
 
 ### 3.1 `tools/` symlink facade for prompt-free allowlisting
-Claude Code's Bash allowlist matches the literal command string and `*` doesn't cross `/`. Keep scripts in the layer they serve; expose **flat file symlinks** in `tools/`; one allowlist entry `Bash(tools/*.py *)` covers everything. Invariants: never a directory symlink (re-prompts), every new executable gets symlink + doc row. Deny-list only the git shapes that break concurrency (`git -C`, `git add .`/`-A`, `commit -a`), not git wholesale.
+Claude Code's Bash allowlist matches the literal command string and `*` doesn't cross `/`. Keep scripts in the layer they serve; expose **flat file symlinks** in `tools/`; one allowlist entry `Bash(tools/*.py *)` covers everything. Invariants: never a directory symlink (re-prompts), every new executable gets symlink + doc row. Deny-list only the git shapes that break concurrency (`git -C`, `git add .`/`-A`, `commit -a`), not git wholesale. Corollary pattern: `CLAUDE_CODE_SESSION_ID` sits in the Bash env but `echo $VAR` isn't cleanly allowlistable → package the read as a 3-line `tools/whoami.py` (fail-loud) that falls under the single entry; one derivation of the session short, three uses (commits, leases, run-id).
 → `reference/harness/permissions-playbook.md`, `reference/harness/settings.json`
 
 ### 3.2 Shared-worktree git concurrency rules
-Several sessions, one working tree, no isolated worktrees: never stage globally; commit path-scoped (`git commit -m msg -- <paths>` uses a temp index, ignores others' staging); never touch files another agent modified; scripts commit their own transitions so locks are visible in history. Commit convention (compact layer-scope prefix) doubles as a greppable machine contract.
+Several sessions, one working tree, no isolated worktrees: never stage globally; commit path-scoped (`git commit -m msg -- <paths>` uses a temp index, ignores others' staging); never touch files another agent modified; scripts commit their own transitions so locks are visible in history. Commit convention (compact layer-scope prefix) doubles as a greppable machine contract. Plumbing for scripts that commit: retry **only** when stderr contains `index.lock` (short backoff — collision with out-of-flock commits from another pipeline in the same repo; any other error propagates, never delete the lock yourself); no-op-safe scoped commit = `git add -- <paths>` (untracked files need it), `git diff --cached --quiet -- <paths>` as predicate, then `commit -- <paths>` — caller commits without pre-checking; guard any pathspec on a possibly-empty dir with `git ls-files` first (else "pathspec did not match").
 → `reference/harness/permissions-playbook.md`, `reference/harness/rules/commit-messages.md`
 
 ### 3.3 Test discipline for orchestration code
