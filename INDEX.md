@@ -9,11 +9,11 @@ Two families: **harness** (running agents on code/tasks) and **KB** (agent-maint
 ## 1. Pipeline core (state & lifecycle)
 
 ### 1.1 Scripts own state, agents own cognition
-The foundational rule. Deterministic guarantees (who holds what, atomic transitions, serialization, commit formats) belong to a CLI under `flock`; judgment (distilling, cutting, validating meaning) belongs to agents. An agent never hand-edits state: it calls a verb (`claim_next`, `done`, `release`…), does its cognitive work, writes *its* artifact; the CLI verifies and commits. Single mutation authority: one script, one lock. Contract of the critical section: read/write state **and commit** before releasing the lock — the transition is visible to others the moment the lock drops, and commit order = real transition order (git log becomes trustworthy as a journal, which 2.8 builds on).
+The foundational rule. Deterministic guarantees (who holds what, atomic transitions, serialization, commit formats) belong to a CLI under `flock`; judgment (distilling, cutting, validating meaning) belongs to agents. An agent never hand-edits state: it calls a verb (`claim_next`, `done`, `release`…), does its cognitive work, writes *its* artifact; the CLI verifies and commits. Single mutation authority: one script, one lock. Contract of the critical section: read/write state **and commit** before releasing the lock — the transition is visible to others the moment the lock drops, and commit order = real transition order (git log becomes trustworthy as a journal, which 2.8 builds on). Two write-atomicity doctrines, both deliberate: the full pipeline does tmp+rename (1.2); the minimal one does a direct `write_text` — **the flock is the atomicity and git the recovery** (crash mid-write → `git checkout` from the last transition commit). Locking + a committed baseline replace atomic writes for a small pipeline — document it as a choice so nobody "fixes" it. Lock sidecar lives outside the repo (`$TMPDIR`, survives checkouts; machine-global but per-repo state → test-safe).
 → `reference/consolidation-pipeline/docs/philosophy/map-reduce.md`, `docs/specs/modele-donnees.md`
 
 ### 1.2 Tabular registry, not a ledger
-Task state = one CSV row per task, mutated in place. Bounded by construction (doesn't grow with activity); history is free via `git log -- tasks.csv` since every transition is a commit. Read/write only through the `csv` module. `note` column carries structured tokens (`author:`, `ok:`, `fix:`, `correcting:<short>`).
+Task state = one CSV row per task, mutated in place. Bounded by construction (doesn't grow with activity); history is free via `git log -- tasks.csv` since every transition is a commit. Read/write only through the `csv` module. `note` column carries structured tokens (`author:`, `ok:`, `fix:`, `correcting:<short>`). Writes are atomic: temp file **beside** the CSV (same filesystem → `os.replace` rename guaranteed atomic — a tmp in `/tmp` wouldn't be), suffixed with the PID (concurrent writers never share a temp); a watchdog SIGKILL mid-write can never leave a truncated registry.
 → `reference/consolidation-pipeline/_store.py`, `task.py`, `docs/specs/modele-donnees.md`
 
 ### 1.3 The script picks the task, not the agent
@@ -67,7 +67,7 @@ The problem: an agent that backgrounds a long script isn't woken when it ends, s
 3. **Startup banner addressed to the launching agent** ("TO THE AGENT WHO LAUNCHED THIS") forbidding foreground waits and giving the exact monitor command;
 4. **`watch.py <run-id>`** replacing inline tail loops (an inline loop carries the run-id in its command string → un-allowlistable → prompts every run);
 5. **PostToolUse hook** that re-injects the banner into the launching agent's context when the launch command matches and `run_in_background == true` (the real banner goes to a stdout file nobody reads).
-Per-agent progress counting = grep the agent's short in commit subjects, never a global `HEAD` delta (wrong under parallel commits).
+Per-agent progress counting = grep the agent's short in commit subjects, never a global `HEAD` delta (wrong under parallel commits); exact command: `git rev-list --count -F --grep=<short> <sha_at_spawn>..HEAD` — `-F` (the short is a literal, not a regex), window from the SHA captured at spawn, global-delta fallback when no short was detected. Hook implementation: the whole PostToolUse hook is one `jq -c` filter — predicate (command matches `orchestrate.py` AND `run_in_background == true`) → emit the context-injection object, else emit nothing (empty output = no-op, zero exit-code handling). The injected monitor command is pasteable as-is because hook and script **re-derive the same run-id from the same seed** (`session_id[0:8]`), with no channel between them.
 → `reference/consolidation-pipeline/watch.py`, `hooks/orchestrate_launch_banner.sh`, `docs/philosophy/orchestrateur.md`, hook wiring in `reference/harness/settings.json`
 
 ### 2.3 Three-layer watchdog + semantic audit
@@ -148,7 +148,7 @@ Detect oversize on cheap metadata (line counts, image counts — zero content re
 → `reference/consolidation-pipeline/docs/philosophy/scoping.md`
 
 ### 4.7 Generated regions inside human files
-`inventory.py` repopulates a board between `<!-- INVENTORY:BEGIN/END -->` markers — machine-owned region, human-readable file, reconciled idempotently (merge by id).
+`inventory.py` repopulates a board between `<!-- INVENTORY:BEGIN/END -->` markers — machine-owned region, human-readable file, reconciled idempotently (merge by id). The reconciliation that makes it safe: (a) a row whose file vanished from disk is **carried over, never dropped** (deletion is a human decision; hand-added rows survive); (b) asymmetric per-column merge — factual columns refreshed from discovery, state columns preserved (a re-scan must never reset progress); (c) two generated regions of different natures in the same file: the inventory (*reconciled*) vs the duplicates list (*regenerated* each run — a derived view); (d) each marker must appear exactly once, else abort (corrupted file); (e) `--reset` is the sole, explicit destructive escape hatch.
 → `reference/extraction-pipeline/inventory.py`, `reference/consolidation-pipeline/inventory.py`
 
 ---
