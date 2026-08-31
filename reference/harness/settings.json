@@ -1,0 +1,70 @@
+{
+  "disableWorkflows": true,
+  "disabledMcpjsonServers": ["webstorm"],
+  "skillOverrides": {
+    "run": "off",
+    "security-review": "off",
+    "verify": "off"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/2-consolide/outils/hooks/orchestrate_launch_banner.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(tools/*.py *)",
+      "Bash(tools/*.py)",
+      "Bash(1-sources/outils/ressources/*.py *)",
+      "Bash(1-sources/outils/ressources/*.py)",
+      "Bash(2-consolide/outils/*.py *)",
+      "Bash(2-consolide/outils/*.py)",
+      "Bash(caffeinate -i 2-consolide/outils/*.py *)",
+      "Bash(caffeinate -i 2-consolide/outils/*.py)",
+      "Bash(common/outils/templates/file-validation/*.py *)",
+      "Bash(common/outils/templates/file-validation/*.py)",
+      "Bash(.venv/bin/pytest tools/*)",
+      "Bash(.venv/bin/pytest 1-sources/outils/*)",
+      "Bash(.venv/bin/pytest 2-consolide/outils/*)",
+      "Bash(.venv/bin/pytest common/outils/*)",
+      "Bash(tail *)",
+      "Bash(head *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git mv *)",
+      "Bash(git rm *)",
+      "Bash(git restore --staged *)",
+      "Edit(/Users/josian/.claude/session-env/**)",
+      "Write(/Users/josian/.claude/session-env/**)"
+    ],
+    "deny": [
+      "Bash(git -C *)",
+      "Bash(git add .)",
+      "Bash(git add -A*)",
+      "Bash(git commit -a*)"
+    ]
+  },
+  "sandbox": {
+    "filesystem": {
+      "allowWrite": [
+        "/Users/josian/.claude/session-env/",
+        "/tmp/",
+        "/private/tmp/"
+      ]
+    }
+  }
+}
