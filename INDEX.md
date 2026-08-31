@@ -49,7 +49,7 @@ Hand-arbitrated facts live as mini-ADRs (one fact per file, monotonic id = immut
 ## 2. Orchestration
 
 ### 2.1 Slots vs budget — two orthogonal caps
-`--slots` = concurrency width (CPU, commit serialization, rate limits); `--max-agents` = cumulative budget (guard against a queue that never empties). On each freed slot, **re-peek state** rather than planning the queue once — state moved. Pin `--model` on every `claude -p` (otherwise cost inherits the launcher's UI default). Stall detection = state-fingerprint diff at harvest (N consecutive no-change harvests → drain), not per-stream counters (false-positive on legitimately repeating gates).
+`--slots` = concurrency width (CPU, commit serialization, rate limits); `--max-agents` = cumulative budget (guard against a queue that never empties). On each freed slot, **re-peek state** rather than planning the queue once — state moved. Pin `--model` on every `claude -p` (otherwise cost inherits the launcher's UI default). Stall detection = state-fingerprint diff at harvest (N consecutive no-change harvests → drain), not per-stream counters (false-positive on legitimately repeating gates). Spawn each worker with the parent env **minus `CLAUDE_CODE_SESSION_ID`**: inherited, every worker gets the orchestrator's session short → one apparent identity everywhere → the validator ≠ author guard silently dies.
 → `reference/consolidation-pipeline/orchestrate.py`, `docs/specs/orchestrateur.md`, `docs/philosophy/orchestrateur.md`; generic template plugging onto `templates/file-validation/`: `reference/templates/subagent-orchestrator/`
 
 ### 2.2 Banner-as-monitor — long background scripts under an agent
