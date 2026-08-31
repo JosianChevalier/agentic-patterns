@@ -8,19 +8,20 @@
 
 ## Structure
 
-- `INDEX.md` — le catalogue : 24 patterns, 5 familles (pipeline core, orchestration, harness/permissions, KB conventions, agent/skill authoring). **Point d'entrée unique** : toute session commence par le lire.
-- `reference/` — copies **verbatim** de la machinerie d'origine (scripts Python, specs, philosophy, prompts, hooks, skills, agents, tests). En français, avec des mentions du domaine d'origine : c'est assumé, la généricisation est itérative.
-- Provenance détaillée : table « Reference map » en fin d'`INDEX.md`.
-- `sequential-flow-runner/` — **premier cas d'usage aval** : note de design (README) composant les patterns de l'INDEX pour transformer des flows de code agent-orchestrés (TDD, refactor atomique) en orchestrateur Python pilotant des workers `claude -p` ; avec copies verbatim des flows source (autre projet que l'origine du reste du repo).
+- `patterns/<slug>/index.md` — le catalogue : 33 patterns, 5 familles (pipeline core, orchestration, harness/permissions, KB conventions, agent/skill authoring). Un dossier par pattern ; frontmatter = description concise + tags.
+- `INDEX.md` — **point d'entrée** : vue générée par `piocher.py` (catalogue par famille), requêtable par tags.
+- `patterns/TAGS.md` — vocabulaire de tags contrôlé (tag → définition) + règle d'extensibilité.
+- `reference/` — copies **verbatim** de la machinerie d'origine (scripts Python, specs, philosophy, prompts, hooks, skills, agents, tests). En français, avec des mentions du domaine d'origine : c'est assumé, la généricisation est itérative. Provenance : `reference/README.md`.
+- `sequential-flow-runner/` — **premier cas d'usage aval** : note de design (README) composant les patterns du catalogue pour transformer des flows de code agent-orchestrés (TDD, refactor atomique) en orchestrateur Python pilotant des workers `claude -p` ; avec copies verbatim des flows source (autre projet que l'origine du reste du repo).
 
 ## Règles de travail
 
-- **La forme finale du repo n'est pas encore cadrée.** Josian doit expliquer ce qu'il vise (usage, format cible). D'ici là : pas de restructuration, pas de généricisation massive, pas de traduction — on **collecte et on audite**.
-- Tout ajout/retrait de pattern dans `INDEX.md` = **arbitrage Josian** (liste de candidats avec verdict proposé, il tranche).
-- Une entrée d'INDEX doit être **autoportante** : problème → mécanisme → insight, lisible sans ouvrir `reference/`. Les chemins `reference/` suivent en pointeurs.
-- `reference/` est une **archive** : on n'y édite pas les copies (fidélité à l'origine) ; un pattern généricisé vivra ailleurs, quand la forme cible sera tranchée.
+- Tout ajout/retrait de pattern dans le catalogue = **arbitrage Josian** (liste de candidats avec verdict proposé, il tranche).
+- Un pattern doit être **autoportant** : problème → mécanisme → insight, lisible sans ouvrir `reference/`. Les chemins `reference/` suivent en pointeurs.
+- `reference/` est une **archive** : on n'y édite rien (fidélité à l'origine) ; un pattern généricisé vit dans son dossier `patterns/<slug>/`.
+- `INDEX.md` est une **vue générée** : jamais éditée à la main — regénérer via `piocher.py --write`.
 
 ## État / en cours
 
-- 3 audits (sessions dédiées, handovers émis) : **complétude** (qu'a-t-on oublié dans formation-cats ?), **autoportance** (le repo se comprend-il sans formation-cats ?), **or dans le code** (tricks d'implémentation non catalogués).
-- Puis session de **cadrage** : Josian pose l'objectif, on décide la forme finale.
+- Les 3 audits (complétude, autoportance, or dans le code) sont passés.
+- Reste ouvert : `audit-or-dans-le-code.md` — candidats en attente d'**arbitrage Josian**, item par item.
