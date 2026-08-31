@@ -43,5 +43,3 @@ Légende : chaque item = trick → mécanique → pourquoi c'est malin → point
 
 - **§3.3 sur-promet** : « every spawned subprocess has an immanent time bound », mais l'exemplaire fait deux `communicate()` **sans timeout** (`tests/test_concurrency.py:51-52`). À réconcilier (corriger l'INDEX ou noter la dérogation).
 - **§2.1** : le fingerprint d'état décrit la consolidation ; l'extraction utilise « 0 commit par short, 5 fois de suite » — variante non documentée (cf. item B).
-- **§1.3** : « the script picks the task » n'est pas le pattern unique — la variante board-markdown fait l'inverse (pick agent + random + retries bornés, cf. item A).
-- **§2.3** : pointe l'extraction comme « reference impl » mais rate ses vrais atouts (verdict déterministe injecté, audit désarmé, cycle non-bloquant — cf. items A).
