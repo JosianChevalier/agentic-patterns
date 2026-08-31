@@ -22,7 +22,7 @@ Task state = one CSV row per task, mutated in place. Bounded by construction (do
 
 ### 1.4 Validation by N/N convergence of distinct agents
 An artifact converges when N *consecutive* passes by N *distinct* agents say `ok`. Guards enforced by script, not by instruction: validator ≠ author, no two passes by the same agent, validation only after production. Agent identity = 8-char session short, stamped in every commit subject in a fixed format — the format is a machine contract (scripts grep history to enforce guards and attribute work).
-→ `reference/consolidation-pipeline/task.py`, `docs/specs/validate.md`; liftable generic template: `reference/harness/templates/file-validation/`; generic template (state machine, verdicts `ok`/`corrected`/`flagged`, script-enforced guards): `reference/templates/file-validation/`, black-box suite `reference/tests/test_template_file_validation.py`
+→ `reference/consolidation-pipeline/task.py`, `docs/specs/validate.md`; generic template (state machine, verdicts `ok`/`corrected`/`flagged`, script-enforced guards): `reference/templates/file-validation/`, black-box suite `reference/tests/test_template_file_validation.py`
 
 ### 1.5 Correction lease — fix in place, never nuclear reject
 A rejected artifact isn't thrown back to `todo`. A validator edits it in place (`corrige`); all sibling validation passes reset to 0/N (the content is no longer what they read). The edit spans multiple CLI calls, outside the lock → concurrent correctors serialized by a **durable lease** in the row's note (`correcting:<short>`). Orphaned corrector: clear lease + `git checkout` the artifact back.
@@ -72,6 +72,7 @@ A time cap doesn't catch a rabbit-hole: an off-task agent produces output contin
 - **Deterministic verdict pre-computed** — the orchestrator computes quota overrun itself and injects `PLAFOND: … → overrun|ok` into the audit prompt with "kill verdict, nothing to recount": code decides the quantifiable, the cheap model judges only the qualitative. Quota baseline = the unreleased board cell — claim/release hands the starting point for free, zero orchestrator state.
 - **Audit disarmed, non-blocking, last-VERDICT-wins** — the audit subprocess gets no tools (everything inline in its prompt → it can't stall reading a 5 MB log), one audit in flight with its own deadline (a hung audit is killed, verdict = continue); parse the *last* `VERDICT:` line (the model deliberates before concluding); every error branch converges to continue. Anti-over-kill clause in the prompt: log tail shows the agent self-corrected → continue.
 - **Digest bounded by construction** — constant-cost global counters (event total, `tool_use` by name, errors) + tail of the last 50 events, each field truncated, base64 blobs → `<image>`, unreadable log → dedicated string, never an exception. Digest size is invariant of log content — otherwise the audit would time out precisely on long-running agents, the ones it watches.
+- **Kill the whole process group** — workers and audits spawned `start_new_session=True`; kill = `os.killpg(os.getpgid(pid), SIGKILL)` with idempotent `proc.kill()` fallback, then `wait()` to reap. A `claude -p` forks pipeline scripts/git that hold locks: killing only the claude process leaks children that block everyone behind a lock nobody will release.
 → `reference/consolidation-pipeline/docs/specs/watchdog.md`; reference impl `reference/extraction-pipeline/orchestrate.py`; genericized (6 `# ADAPT:` zones, whole-process-group SIGKILL, orphan-claim auto-abandon): `reference/templates/subagent-orchestrator/`
 
 ### 2.4 Prompts as files, single source of truth
@@ -79,7 +80,7 @@ An instruction addressed to agents is written once, in a dedicated `.md`; the or
 → `reference/consolidation-pipeline/prompts/`, `docs/philosophy/prompts.md`
 
 ### 2.5 Headless-worker preamble
-Liftable boilerplate for any `claude -p` worker: one task then exit, never a second claim, no "while I'm here"; explicit `run_in_background: false` on every Bash (headless agents aren't woken); never `wait`/`sleep`-loops (refused silently outside allowlist); git only through the CLI verbs; read your session short from the claim output, not from `echo $VAR`.
+Liftable boilerplate for any `claude -p` worker: one task then exit, never a second claim, no "while I'm here"; explicit `run_in_background: false` on every Bash (headless agents aren't woken); never `wait`/`sleep`-loops (refused silently outside allowlist); git only through the CLI verbs; read your session short from the claim output, not from `echo $VAR`. Two headless traps documented **in the prompt itself**: (a) an out-of-allowlist Bash in `-p` mode is refused without a prompt AND **cancels the sibling tool calls of the same turn** — the agent silently proceeds on partial data (hence `Bash(echo *)` allowlisted solely so reading one's session id never triggers it); (b) a tool result can surface one turn late → the prompt announces it and mandates a single `git log -1` confirmation, never a retry loop.
 → `reference/consolidation-pipeline/prompts/common.md`
 
 ### 2.6 Small-context doctrine
@@ -120,14 +121,15 @@ Every note carries a frontmatter sentence — "load this note when…" — model
 
 ### 4.2 Work-plan sweep via anchored frontmatter (`plan_de_travail`)
 Work plans stay distributed (each in the layer it concerns) but discoverable by one grep: any file that *is* a plan carries frontmatter `plan_de_travail: "<what must empty>"`. `^`-anchored grep keeps out prose that merely discusses plans. Pair with visible step checkboxes + a current-step marker so a zero-context session resumes without reading the whole file.
-→ `reference/work-index/CLAUDE.md` (frontmatter convention + checkbox/current-step rule), live frontmatter instance: `reference/work-index/INDEX.md`
+→ `reference/work-index/CLAUDE.md` (frontmatter convention + checkbox/current-step rule), live frontmatter instance: `reference/work-index/INDEX.md`; convention as stated to every session: `reference/harness/CLAUDE.racine.md` (§3)
 
 ### 4.3 Three natures of a location
 Resolve before writing anywhere: **work plan** (empties — a remaining item = work not done), **archive** (never empties), **inventory** (a view mirroring an archive — *reconciled*, never emptied or frozen; a discrepancy = work on the archive, never an edit to the view).
-→ worked instance: `reference/work-index/CLAUDE.md` (opens by distinguishing the work-in-progress folder from its two sibling folders — frozen archive, accumulating meeting log — then states its own nature: "this empties")
+→ worked instance: `reference/work-index/CLAUDE.md` (opens by distinguishing the work-in-progress folder from its two sibling folders — frozen archive, accumulating meeting log — then states its own nature: "this empties"); canonical statement: `reference/harness/CLAUDE.racine.md` (§3)
 
 ### 4.4 No pink elephant — discarded things disappear, record included
 Never keep a record-of-discarding in a living doc ("X removed because…", struck entries, out-of-scope notes re-describing X): it re-summons the closed topic — the next agent re-reads, re-debates, re-introduces. The thing disappears; the *why* lives in the commit message. Sole legitimate guard: against things that **come back from upstream** (an agent reloading source material will re-propose it → leave a barrier "covered in §N"). No upstream pressure → no guard → it goes.
+→ canonical statement: `reference/harness/CLAUDE.racine.md` (§3, « Pas d'éléphant rose »)
 
 ### 4.4bis Permanent work-stream index whose rows self-empty
 One permanent entry point answers "what's running right now?": an index file that is **never deleted** — its *rows* empty. A finished stream's working file disappears and its row is removed (the why lives in the commit message, per 4.4); when nothing runs, the table is empty but the file remains, so the entry point never moves. Table columns force actionability: what it is, state, **next action**, **who decides**. Standing instruction to agents: serve the human *the next action, ready to decide* — never a global status report; if serving it requires the human to carry anything else, the index is missing something → propose the fix, don't hand-compensate (5.3). Stream files follow 4.2 (work-plan frontmatter, step checkboxes); the folder's nature is settled per 4.3.
@@ -159,6 +161,9 @@ A skill = the recovery procedure for an error already made; each opens with "the
 
 ### 5.3 Human-attention protocol
 The human's cognitive load is the project's scarce resource; **the methodology absorbs it, not the agent** (hand-compensation restarts at zero each session — load must live in the system, versioned). Mechanics: two decision natures (substance → human decides in detail, verbatim in front of them; means → one sentence problem + stake + recommendation); state lives in files, never in heads; any accidental load = a system defect → fix the system (rework > addition); **never a bare locator** (content leads, locator follows in parentheses — including when relaying subagents); decisions on text require the **quoted verbatim**, never a paraphrase; concise ≠ compressed (a message the human must decode is a failure); dialogue over multiple-choice.
+**Glossing boundary**: contextualize only what the human *offloaded* (org-internal names, repo conventions, agent-written file contents — never cite a file as if they know what's in it: say what it contains); never gloss standard industry vocabulary — the test is "is this a thing they delegated?".
+**Pending human actions get a durable home**: while the topic is active, the item lives in the current working doc; once disengaged it must move to a permanent home (global scope → the work index; layer-scoped → that layer's protocol doc — never an audit archive), or it dies with the task.
+→ `reference/harness/CLAUDE.racine.md` (§0 « Communication avec Josian » — the full protocol as stated to every session)
 
 ---
 
@@ -167,9 +172,12 @@ The human's cognitive load is the project's scarce resource; **the methodology a
 | Path | Origin | What it is |
 |---|---|---|
 | `reference/consolidation-pipeline/` | `2-consolide/outils/` | CSV-registry pipeline: CLI + lint + orchestrator + watch + prompts + specs/philosophy docs |
+| `reference/consolidation-pipeline/kb-layer-protocol.md` | `2-consolide/CLAUDE.md` | KB layer protocol: canonical note format, `quand_piocher` index, role→notes consumer mapping (renamed — a `CLAUDE.md` here would auto-load) |
+| `reference/consolidation-pipeline/arbitrages-protocol.md` | `1-sources/1.3-arbitrages/CLAUDE.md` | Mini-ADR protocol: format, triage rule, candidat→settled promotion, outgoing-questions queue (renamed, idem) |
 | `reference/extraction-pipeline/` | `1-sources/outils/ressources/` | Multi-step board pipeline: per-cell claim/release, quotas, watchdog reference impl, protocol doc |
 | `reference/report-task.py` | `1-sources/outils/` | Minimal claim/finish/release instance (markdown board) |
 | `reference/harness/` | `.claude/`, `common/outils/` | settings.json, permissions playbook, commit rules, agent defs, skills, whoami |
+| `reference/harness/CLAUDE.racine.md` | `CLAUDE.md` (repo root) | Root project instructions: human-attention protocol (5.3), pink elephant (4.4), three natures (4.3), work-plan sweep (4.2), layer map (renamed — a `CLAUDE.md` here would auto-load) |
 | `reference/templates/` | `common/outils/templates/` | Liftable generic templates: `file-validation/` (claim + N/N-validation CLI + example board) and `subagent-orchestrator/` (`claude -p` pool, 3-layer watchdog, heartbeat), with `# ADAPT:` zones and duplication guides |
 | `reference/tests/` | `common/outils/tests/` | Test discipline README + concurrency exemplar + template black-box suite |
 | `reference/work-index/` | `0-pilotage/travaux-en-cours/` | Permanent index of open work streams (rows empty, file stays) + folder protocol; domain rows kept as format illustration |
