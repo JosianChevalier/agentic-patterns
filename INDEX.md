@@ -178,12 +178,12 @@ The human's cognitive load is the project's scarce resource; **the methodology a
 | `reference/consolidation-pipeline/` | `2-consolide/outils/` | CSV-registry pipeline: CLI + lint + orchestrator + watch + prompts + specs/philosophy docs |
 | `reference/consolidation-pipeline/kb-layer-protocol.md` | `2-consolide/CLAUDE.md` | KB layer protocol: canonical note format, `quand_piocher` index, role→notes consumer mapping (renamed — a `CLAUDE.md` here would auto-load) |
 | `reference/consolidation-pipeline/arbitrages-protocol.md` | `1-sources/1.3-arbitrages/CLAUDE.md` | Mini-ADR protocol: format, triage rule, candidat→settled promotion, outgoing-questions queue (renamed, idem) |
-| `reference/extraction-pipeline/` | `1-sources/outils/ressources/` | Multi-step board pipeline: per-cell claim/release, quotas, watchdog reference impl, protocol doc |
+| `reference/extraction-pipeline/` | `1-sources/outils/ressources/` | Multi-step board pipeline: per-cell claim/release, quotas, watchdog reference impl, append-only gate, protocol doc |
 | `reference/report-task.py` | `1-sources/outils/` | Minimal claim/finish/release instance (markdown board) |
 | `reference/harness/` | `.claude/`, `common/outils/` | settings.json, permissions playbook, commit rules, agent defs, skills, whoami |
 | `reference/harness/CLAUDE.racine.md` | `CLAUDE.md` (repo root) | Root project instructions: human-attention protocol (5.3), pink elephant (4.4), three natures (4.3), work-plan sweep (4.2), layer map (renamed — a `CLAUDE.md` here would auto-load) |
 | `reference/templates/` | `common/outils/templates/` | Liftable generic templates: `file-validation/` (claim + N/N-validation CLI + example board) and `subagent-orchestrator/` (`claude -p` pool, 3-layer watchdog, heartbeat), with `# ADAPT:` zones and duplication guides |
-| `reference/tests/` | `common/outils/tests/` | Test discipline README + concurrency exemplar + template black-box suite |
+| `reference/tests/` | `common/outils/tests/` | Test discipline README + concurrency exemplar + template and append-only-gate black-box suites |
 | `reference/work-index/` | `0-pilotage/travaux-en-cours/` | Permanent index of open work streams (rows empty, file stays) + folder protocol; domain rows kept as format illustration |
 
 Left behind on purpose: domain content (sources, notes, deliverables), extraction handlers (format-specific), domain state files (`tasks.csv`, boards).
