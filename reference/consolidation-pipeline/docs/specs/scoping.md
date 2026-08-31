@@ -28,7 +28,7 @@ Calcul cheap (`grep -n` des frontières + soustraction). Tient en ~200 lignes m�
 
 ## Coupe — l'agent de scoping
 
-Cognition migrée dans [`2-consolide/outils/prompts/scope.md`](../../2-consolide/outils/prompts/scope.md) — source unique cat'ée par l'orchestrateur. En substance : lire **seulement l'outline** (jamais le contenu), regrouper des slides/pages **contiguës** en lots (cible molle ~500 lignes), selon 4 règles (ordre du document / chunk = bloc thématique contigu / sémantique aligné sur le structurel / exception unité énorme sous-divisée), avec fallback ligne-à-ligne sans pagination et re-`split` récursif d'un enfant trop gros. → `README.md` § Prompts, `philosophy/prompts.md`.
+Cognition migrée dans [`2-consolide/outils/prompts/scope.md`](../../prompts/scope.md) — source unique cat'ée par l'orchestrateur. En substance : lire **seulement l'outline** (jamais le contenu), regrouper des slides/pages **contiguës** en lots (cible molle ~500 lignes), selon 4 règles (ordre du document / chunk = bloc thématique contigu / sémantique aligné sur le structurel / exception unité énorme sous-divisée), avec fallback ligne-à-ligne sans pagination et re-`split` récursif d'un enfant trop gros. → `README.md` § Prompts, `philosophy/prompts.md`.
 
 Ce que le **système** (CLI) contraint reste ici :
 

@@ -54,7 +54,7 @@ couche 1 (sources)                  couche 1.5 (fragments)             couche 2 
 
 ## Invocation des scripts
 
-Les scripts (`task.py`, `inventory.py`, `check.py`) s'appellent en **chemin relatif direct** depuis la racine du repo (`2-consolide/outils/task.py peek_next`), pas via `python3` ni en chemin absolu — sinon prompt de permission. Allowlist + règle de commit concurrence-safe documentées dans [`common/outils/CLAUDE.md`](../../common/outils/CLAUDE.md) § `2-consolide/`.
+Les scripts (`task.py`, `inventory.py`, `check.py`) s'appellent en **chemin relatif direct** depuis la racine du repo (`2-consolide/outils/task.py peek_next`), pas via `python3` ni en chemin absolu — sinon prompt de permission. Allowlist + règle de commit concurrence-safe documentées dans [`common/outils/CLAUDE.md`](../../../harness/permissions-playbook.md) § `2-consolide/`.
 
 ## Orchestration
 
