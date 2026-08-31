@@ -11,6 +11,7 @@
 - `INDEX.md` — le catalogue : 24 patterns, 5 familles (pipeline core, orchestration, harness/permissions, KB conventions, agent/skill authoring). **Point d'entrée unique** : toute session commence par le lire.
 - `reference/` — copies **verbatim** de la machinerie d'origine (scripts Python, specs, philosophy, prompts, hooks, skills, agents, tests). En français, avec des mentions du domaine d'origine : c'est assumé, la généricisation est itérative.
 - Provenance détaillée : table « Reference map » en fin d'`INDEX.md`.
+- `sequential-flow-runner/` — **premier cas d'usage aval** : note de design (README) composant les patterns de l'INDEX pour transformer des flows de code agent-orchestrés (TDD, refactor atomique) en orchestrateur Python pilotant des workers `claude -p` ; avec copies verbatim des flows source (autre projet que l'origine du reste du repo).
 
 ## Règles de travail
 
