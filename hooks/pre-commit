@@ -1,0 +1,40 @@
+#!/bin/sh
+# Garde INDEX.md (vue générée) synchrone avec le catalogue patterns/*/index.md.
+# Travaille sur le CONTENU DU COMMIT (l'index git — y compris l'index temporaire
+# des commits path-scopés `git commit -- <paths>` via GIT_INDEX_FILE), jamais sur
+# le working tree : le travail non commité d'autres sessions n'entre pas dans la
+# vue et ne fait pas échouer un commit innocent.
+
+set -eu
+
+watched='^(piocher\.py|INDEX\.md|patterns/TAGS\.md|patterns/[^/]+/index\.md)$'
+
+if git rev-parse -q --verify HEAD >/dev/null; then
+    against=HEAD
+else
+    against=$(git hash-object -t tree /dev/null)
+fi
+
+git diff --cached --name-only "$against" | grep -qE "$watched" || exit 0
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+# Copie du contenu exact du commit dans un répertoire temporaire.
+git checkout-index -a --prefix="$tmp/"
+
+if [ ! -f "$tmp/INDEX.md" ] || [ ! -f "$tmp/piocher.py" ]; then
+    echo "pre-commit: INDEX.md ou piocher.py absent du contenu du commit" >&2
+    exit 1
+fi
+
+cp "$tmp/INDEX.md" "$tmp/INDEX.md.staged"
+# Lint du catalogue + régénération de la vue, sur le contenu du commit.
+python3 "$tmp/piocher.py" --write >/dev/null
+
+if ! cmp -s "$tmp/INDEX.md" "$tmp/INDEX.md.staged"; then
+    cp "$tmp/INDEX.md" INDEX.md
+    echo "pre-commit: INDEX.md dérivait du catalogue — vue régénérée depuis le contenu du commit." >&2
+    echo "pre-commit: \`git add INDEX.md\` puis recommitte." >&2
+    exit 1
+fi

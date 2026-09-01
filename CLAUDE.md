@@ -20,6 +20,7 @@
 - Un pattern doit être **autoportant** : problème → mécanisme → insight, lisible sans ouvrir `reference/`. Les chemins `reference/` suivent en pointeurs.
 - `reference/` est une **archive** : on n'y édite rien (fidélité à l'origine) ; un pattern généricisé vit dans son dossier `patterns/<slug>/`.
 - `INDEX.md` est une **vue générée** : jamais éditée à la main — regénérer via `piocher.py --write`.
+- Hook pre-commit versionné (`hooks/pre-commit`) — install par clone : `git config core.hooksPath hooks`. Lint le catalogue et vérifie que la vue correspond au **contenu du commit** (index git, commits path-scopés compris — le WIP non commité d'autres sessions n'entre jamais dans la vue). Dérive → il régénère `INDEX.md` dans le working tree et échoue : `git add INDEX.md` puis recommitter.
 
 ## État / en cours
 
