@@ -13,7 +13,7 @@ The content markdown is the **single source**; the rendering layer holds **two r
 
 The gain comes from the cheap renderer (instant feedback, no formatting work); the expensive cost is deferred and paid a single time.
 
-**Master constraint — layout congruence.** The stakeholder validates on the cheap renderer: if the contractual renderer renders differently, you deliver a form nobody validated. So the cheap renderer's layouts **mirror** the contractual template's. Keep the template minimal so mirroring stays cheap.
+**Master constraint — layout congruence.** The stakeholder validates on the cheap renderer: if the contractual renderer renders differently, you deliver a form nobody validated. So the cheap renderer's layouts **mirror** the contractual template's. A minimal template keeps that mirroring cheap.
 
 **Interface contract between layers = a markdown grammar.** One grammar names each item's **type** and fixes the body vocabulary (bullets, callouts, placeholders, tables…). Derived from existing content and validated on the rendered output, not in the abstract. Type auto-detection by default; an explicit per-item marker **overrides** it.
 
@@ -23,3 +23,4 @@ Directory structure follows the principle: **one directory per render target** (
 
 ## Reference
 `reference/presentation-layer/presentation-layer-protocol.md`
+`reference/deliverable-layer/deliverable-layer-protocol.md` (§ « Rendu direct — grammaire 4→5 » : marqueur de template explicite vs auto-détection)
