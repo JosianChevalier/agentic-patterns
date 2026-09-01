@@ -8,7 +8,7 @@
 
 ## Structure
 
-- `patterns/<slug>/index.md` — le catalogue : 33 patterns, 5 familles (pipeline core, orchestration, harness/permissions, KB conventions, agent/skill authoring). Un dossier par pattern ; frontmatter = description concise + tags.
+- `patterns/<slug>/index.md` — le catalogue : 5 familles (pipeline core, orchestration, harness/permissions, KB conventions, agent/skill authoring). Un dossier par pattern ; frontmatter = description concise + tags.
 - `INDEX.md` — **point d'entrée** : vue générée par `piocher.py` (catalogue par famille), requêtable par tags.
 - `patterns/TAGS.md` — vocabulaire de tags contrôlé (tag → définition) + règle d'extensibilité.
 - `reference/` — copies **verbatim** de la machinerie d'origine (scripts Python, specs, philosophy, prompts, hooks, skills, agents, tests). En français, avec des mentions du domaine d'origine : c'est assumé, la généricisation est itérative. Provenance : `reference/README.md`.

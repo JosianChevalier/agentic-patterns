@@ -146,7 +146,8 @@ def cmd_tags():
 
 
 def generated_block(patterns):
-    lines = []
+    n_families = len({p["family"] for p in patterns})
+    lines = [f"{len(patterns)} patterns in {n_families} families.", ""]
     for family in FAMILY_ORDER:
         members = [p for p in patterns if p["family"] == family]
         if not members:
