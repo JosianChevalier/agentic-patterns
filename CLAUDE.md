@@ -24,5 +24,4 @@
 
 ## État / en cours
 
-- Les 3 audits (complétude, autoportance, or dans le code) sont passés.
-- Reste ouvert : `audit-or-dans-le-code.md` — candidats en attente d'**arbitrage Josian**, item par item.
+- Les 3 audits (complétude, autoportance, or dans le code) sont passés, arbitrés et intégrés au catalogue.
