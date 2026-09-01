@@ -11,4 +11,4 @@ The human's cognitive load is the project's scarce resource; **the methodology a
 **Pending human actions get a durable home**: while the topic is active, the item lives in the current working doc; once disengaged it must move to a permanent home (global scope → the work index; layer-scoped → that layer's protocol doc — never an audit archive), or it dies with the task.
 
 ## Reference
-`reference/harness/CLAUDE.racine.md` (§0 « Communication avec Josian » — the full protocol as stated to every session)
+`reference/harness/CLAUDE.racine.md` (§0 — the communication protocol as stated to every session)
