@@ -11,8 +11,8 @@ Verbatim archive of the original project files — never edited; the patterns in
 | `reference/report-task.py` | `1-sources/outils/` | Minimal claim/finish/release instance (markdown board) |
 | `reference/harness/` | `.claude/`, `common/outils/` | settings.json, permissions playbook, commit rules, agent defs, skills, whoami |
 | `reference/harness/CLAUDE.racine.md` | `CLAUDE.md` (repo root) | Root project instructions: `human-attention-protocol`, `no-pink-elephant`, `three-natures`, `work-plan-sweep`, layer map (renamed — a `CLAUDE.md` here would auto-load) |
+| `reference/deliverable-layer/` | `4-contenu/` | Deliverable-layer protocol (renamed — a `CLAUDE.md` here would auto-load): zero-meta rule, verbatim review loop, `NN#MM` locators; + `slides.py` (idempotent annotate + resolver) |
 | `reference/templates/` | `common/outils/templates/` | Liftable generic templates: `file-validation/` (claim + N/N-validation CLI + example board) and `subagent-orchestrator/` (`claude -p` pool, 3-layer watchdog, heartbeat), with `# ADAPT:` zones and duplication guides |
-| `reference/tests/` | `common/outils/tests/` | Test discipline README + concurrency exemplar + template and append-only-gate black-box suites |
 | `reference/work-index/` | `0-pilotage/travaux-en-cours/` | Permanent index of open work streams (rows empty, file stays) + folder protocol; domain rows kept as format illustration |
 
 Left behind on purpose: domain content (sources, notes, deliverables), extraction handlers (format-specific), domain state files (`tasks.csv`, boards).

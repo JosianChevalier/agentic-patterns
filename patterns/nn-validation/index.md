@@ -10,4 +10,4 @@ An artifact converges when N *consecutive* passes by N *distinct* agents say `ok
 
 ## Reference
 
-`reference/consolidation-pipeline/task.py`, `reference/consolidation-pipeline/docs/specs/validate.md`; generic template (state machine, verdicts `ok`/`corrected`/`flagged`, script-enforced guards): `reference/templates/file-validation/`, black-box suite `reference/tests/test_template_file_validation.py`
+`reference/consolidation-pipeline/task.py`, `reference/consolidation-pipeline/docs/specs/validate.md`; generic template (state machine, verdicts `ok`/`corrected`/`flagged`, script-enforced guards): `reference/templates/file-validation/`, black-box suite `patterns/blackbox-test-discipline/tests/test_template_file_validation.py`

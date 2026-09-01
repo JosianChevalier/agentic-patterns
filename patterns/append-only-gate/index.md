@@ -10,4 +10,4 @@ Same family as `sourcing-fidelity-gates` (deterministic gate), for enrichment ch
 
 ## Reference
 
-`reference/extraction-pipeline/check_text_preservation.py`, black-box suite `reference/tests/test_check_text_preservation.py`
+`reference/extraction-pipeline/check_text_preservation.py`, black-box suite `patterns/blackbox-test-discipline/tests/test_check_text_preservation.py`
