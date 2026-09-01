@@ -12,6 +12,7 @@ Verbatim archive of the original project files — never edited; the patterns in
 | `reference/harness/` | `.claude/`, `common/outils/` | settings.json, permissions playbook, commit rules, agent defs, skills, whoami |
 | `reference/harness/CLAUDE.racine.md` | `CLAUDE.md` (repo root) | Root project instructions: `human-attention-protocol`, `no-pink-elephant`, `three-natures`, `work-plan-sweep`, layer map (renamed — a `CLAUDE.md` here would auto-load) |
 | `reference/deliverable-layer/` | `4-contenu/` | Deliverable-layer protocol (renamed — a `CLAUDE.md` here would auto-load): zero-meta rule, verbatim review loop, `NN#MM` locators; + `slides.py` (idempotent annotate + resolver) |
+| `reference/presentation-layer/presentation-layer-protocol.md` | `5-presentation/CLAUDE.md` | Rendering-layer protocol (renamed — a `CLAUDE.md` here would auto-load): one source / two renderers, layout congruence, markdown grammar as 4↔5 contract, non-blocking degraded build |
 | `reference/templates/` | `common/outils/templates/` | Liftable generic templates: `file-validation/` (claim + N/N-validation CLI + example board) and `subagent-orchestrator/` (`claude -p` pool, 3-layer watchdog, heartbeat), with `# ADAPT:` zones and duplication guides |
 | `reference/work-index/` | `0-pilotage/travaux-en-cours/` | Permanent index of open work streams (rows empty, file stays) + folder protocol; domain rows kept as format illustration |
 
