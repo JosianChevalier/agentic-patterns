@@ -10,4 +10,4 @@ Liftable boilerplate for any `claude -p` worker: one task then exit, never a sec
 
 ## Reference
 
-`reference/consolidation-pipeline/prompts/common.md`
+`reference/consolidation-pipeline/prompts/common.md`, `reference/consolidation-pipeline/orchestrate.py` (the machine-side allowlist mirroring the prose, with the keep-in-sync comment and the `echo` rationale), `reference/extraction-pipeline/orchestrate.py` (embedded preamble carrying the late-tool-result trap and the single-`git log -1` rule)
