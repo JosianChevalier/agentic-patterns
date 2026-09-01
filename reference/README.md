@@ -9,6 +9,7 @@ Verbatim archive of the original project files — never edited; the patterns in
 | `reference/consolidation-pipeline/arbitrages-protocol.md` | `1-sources/1.3-arbitrages/CLAUDE.md` | Mini-ADR protocol: format, triage rule, candidat→settled promotion, outgoing-questions queue (renamed, idem) |
 | `reference/extraction-pipeline/` | `1-sources/outils/ressources/` | Multi-step board pipeline: per-cell claim/release, quotas, watchdog reference impl, append-only gate, protocol doc |
 | `reference/report-task.py` | `1-sources/outils/` | Minimal claim/finish/release instance (markdown board) |
+| `reference/relabel_llm.py` | `1-sources/outils/` | LLM-sandwich instance: deterministic dump (idx-numbered items) + deterministic apply (headers only, by idx) around an LLM judgment (imports its deterministic companion, left behind) |
 | `reference/harness/` | `.claude/`, `common/outils/` | settings.json, permissions playbook, commit rules, agent defs, skills, whoami |
 | `reference/harness/CLAUDE.racine.md` | `CLAUDE.md` (repo root) | Root project instructions: `human-attention-protocol`, `no-pink-elephant`, `three-natures`, `work-plan-sweep`, layer map (renamed — a `CLAUDE.md` here would auto-load) |
 | `reference/deliverable-layer/` | `4-contenu/` | Deliverable-layer protocol (renamed — a `CLAUDE.md` here would auto-load): zero-meta rule, verbatim review loop, `NN#MM` locators; + `slides.py` (idempotent annotate + resolver) |
