@@ -6,7 +6,7 @@ family: orchestration
 
 # Small-context doctrine
 
-Quality degrades well before the window limit (~100k loaded = unstable; ~60k working ideal). Consequences: disposable sessions (1 task/session), orchestrator manages volume — "not your endurance"; claim output carries the whole start context; per-claim **quotas** ("do your batch, release and exit even if the cell isn't done").
+Quality degrades well before the window limit (~100k loaded = unstable; ~60k working ideal). Consequences: disposable sessions (1 task/session, then exit — the orchestrator relaunches a fresh one); volume is managed by the number of agents launched, "not your endurance"; the claim command re-prints the full start context (input path, notes, session id) so an agent never greps to bootstrap; per-claim **quotas** ("do your batch, release and exit even if the unit of work isn't finished — the rest is for the next agent").
 
 ## Reference
 
