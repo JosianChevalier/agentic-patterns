@@ -24,4 +24,4 @@
 
 ## État / en cours
 
-- Les 3 audits (complétude, autoportance, or dans le code) sont passés, arbitrés et intégrés au catalogue.
+- Les 3 audits (complétude, autoportance, or dans le code) et la validation pattern par pattern (autoportance, frontmatter, références, fond) sont passés : catalogue stable, prêt à consommer.
