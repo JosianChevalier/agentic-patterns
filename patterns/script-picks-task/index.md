@@ -10,4 +10,4 @@ family: pipeline-core
 
 ## Reference
 
-`reference/consolidation-pipeline/task.py`; simple markdown-board instance: `reference/report-task.py`; liftable generic template (`# ADAPT:` zones, step-by-step duplication guide, known variants): `reference/templates/file-validation/`
+`reference/consolidation-pipeline/task.py`; simple markdown-board instance: `reference/report-task.py`; random-draw variant (no `claim_next` verb): `reference/extraction-pipeline/RESSOURCES_PROTOCOL.md`; liftable generic template (`# ADAPT:` zones, step-by-step duplication guide, known variants): `reference/templates/file-validation/`
